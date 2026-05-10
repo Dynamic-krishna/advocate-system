@@ -4,31 +4,27 @@ FROM php:8.2-apache
 RUN apt-get update && apt-get install -y libpq-dev \
     && docker-php-ext-install pdo_pgsql
 
-# Explicitly configure Apache to handle PHP files
-RUN { \
-        echo '<FilesMatch \.php$>'; \
-        echo '    SetHandler application/x-httpd-php'; \
-        echo '</FilesMatch>'; \
-    } >> /etc/apache2/apache2.conf
+# Enable Apache rewrite module
+RUN a2enmod rewrite
 
-# Set DirectoryIndex
-RUN { \
-        echo '<IfModule dir_module>'; \
-        echo '    DirectoryIndex register.php index.php index.html'; \
-        echo '</IfModule>'; \
-    } > /etc/apache2/conf-available/docker-index.conf \
+# Create index.php that redirects to register.php
+RUN echo '<?php header("Location: register.php"); exit(); ?>' > /var/www/html/index.php
+
+# Set DirectoryIndex to look for register.php first
+RUN echo "DirectoryIndex register.php index.php index.html" > /etc/apache2/conf-available/docker-index.conf \
     && a2enconf docker-index
 
-# Copy project files
+# Copy your project files
 COPY . /var/www/html/
 
-# Set correct permissions
+# Fix permissions
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html \
-    && mkdir -p /var/www/html/uploads \
-    && chmod 777 /var/www/html/uploads
+    && chmod -R 755 /var/www/html
 
-# Verify PHP is working (debug)
-RUN php -v
+# Create uploads directory
+RUN mkdir -p /var/www/html/uploads && chmod 777 /var/www/html/uploads
+
+# Ensure Apache can serve files
+RUN echo '<Directory /var/www/html/>\n\tOptions Indexes FollowSymLinks\n\tAllowOverride All\n\tRequire all granted\n</Directory>' >> /etc/apache2/apache2.conf
 
 EXPOSE 80
