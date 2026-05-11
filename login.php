@@ -15,9 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = "Please enter both username and password";
     } else {
         try {
-            $stmt = $pdo->prepare("SELECT * FROM advocate_registration WHERE enrollment_number = ?");
-            $stmt->execute([$username]);
-            $user = $stmt->fetch();
+             $stmt = $pdo->prepare("SELECT * FROM advocate_registration WHERE enrollment_number = ? OR name = ?");
+             $stmt->execute([$username, $username]);
+             $user = $stmt->fetch();
 
             if ($user && password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <?php endif; ?>
 
         <form method="POST" action="">
-            <label>Username (Enrollment Number):</label>
+            <label>Username (Enrollment Number or Name):</label>
             <input type="text" name="username" required>
 
             <label>Password:</label>

@@ -68,7 +68,9 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Create tables silently (no output)
-    $create_registration = "CREATE TABLE IF NOT EXISTS advocate_registration (
+
+    try{
+        $create_registration = "CREATE TABLE IF NOT EXISTS advocate_registration (
         id SERIAL PRIMARY KEY,
         name VARCHAR(150) NOT NULL,
         password VARCHAR(255) NOT NULL,
@@ -81,6 +83,14 @@ try {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )";
 
+      $pdo->exec($create_registration);
+    }catch (PDOException $e) {
+        // Log error but don't crash
+        error_log("Table creation failed: " . $e->getMessage());
+    }
+
+// Create tables if they don't exist
+try {
     $create_details = "CREATE TABLE IF NOT EXISTS advocate_details (
         id SERIAL PRIMARY KEY,
         advocate_id INTEGER UNIQUE NOT NULL,
@@ -91,9 +101,13 @@ try {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (advocate_id) REFERENCES advocate_registration(id) ON DELETE CASCADE
     )";
-
-    $pdo->exec($create_registration);
     $pdo->exec($create_details);
+} catch (PDOException $e) {
+    // Log error but don't crash
+    error_log("Table creation failed: " . $e->getMessage());
+}
+
+  
 } catch (PDOException $e) {
     die("Database Error: " . $e->getMessage());
 }
