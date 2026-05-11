@@ -367,7 +367,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         });
 
         document.getElementById('enrollment_number').addEventListener('input', function() {
-            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 11);
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
         });
 
         // Password match check on submit
